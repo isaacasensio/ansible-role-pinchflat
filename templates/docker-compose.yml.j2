@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+---
+version: '3.4'
+services:
+  pinchflat:
+    restart: unless-stopped
+    pull_policy: always
+    image: {{ pinchflat_image }}
+    container_name: pinchflat
+    ports:
+      - {{pinchflat_host_port}}:8945
+    user: "{{ created_uid }}:{{ created_gid }}"
+    volumes:
+      - {{pinchflat_host_config_path}}:/config
+      - {{pinchflat_host_data_path}}:/downloads
+    environment:
+      - TZ={{pinchflat_timezone}}

@@ -1,0 +1,61 @@
+---
+- name: Create pinchflat user
+  ansible.builtin.user:
+    name: "{{ pinchflat_container_user }}"
+    shell: /sbin/nologin
+    create_home: true
+    state: present
+  become: true
+
+- name: Get created user metadata
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ pinchflat_container_user }}"
+
+- name: Setting user id and group id facts
+  ansible.builtin.set_fact:
+    created_uid: "{{ ansible_facts.getent_passwd[pinchflat_container_user].1 }}"
+    created_gid: "{{ ansible_facts.getent_passwd[pinchflat_container_user].2 }}"
+
+- name: Ensure pinchflat folders exists
+  become: true
+  ansible.builtin.file:
+    dest: "{{ item }}"
+    owner: "{{ pinchflat_container_user }}"
+    group: "{{ pinchflat_container_user }}"
+    state: directory
+    mode: 0755
+  loop:
+    - "{{ pinchflat_host_config_path }}"
+    - "{{ pinchflat_host_data_path }}"
+
+- name: Copy pinchflat docker-compose template.
+  ansible.builtin.template:
+    src: templates/docker-compose.yml.j2
+    dest: "{{ pinchflat_host_config_path }}/docker-compose.yml"
+    owner: "{{ pinchflat_container_user }}"
+    group: "{{ pinchflat_container_user }}"
+    mode: 0644
+  become: true
+
+- name: Create systemd pinchflat service.
+  ansible.builtin.template:
+    src: templates/pinchflat.service.j2
+    dest: "/etc/systemd/system/pinchflat.service"
+    mode: 0644
+  become: true
+
+- name: Ensure pinchflat.service is started
+  ansible.builtin.systemd:
+    state: started
+    enabled: true
+    name: pinchflat
+  become: true
+
+- name: Remove old image versions
+  become: true
+  community.docker.docker_prune:
+    images: true
+    images_filters:
+      dangling: false
+  notify: Restart Docker service

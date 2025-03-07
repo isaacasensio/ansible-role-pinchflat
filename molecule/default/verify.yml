@@ -1,0 +1,12 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Verify pinchflat is running
+      ansible.builtin.assert:
+        that: >-
+          ansible_facts['services']['pinchflat.service']['state'] == 'running'
+      become: true

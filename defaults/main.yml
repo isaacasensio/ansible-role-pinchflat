@@ -1,0 +1,7 @@
+---
+pinchflat_image: ghcr.io/kieraneglin/pinchflat:latest
+pinchflat_host_config_path: /etc/pinchflat
+pinchflat_host_data_path: /var/lib/pinchflat
+pinchflat_container_user: pinchflat
+pinchflat_host_port: 8945
+pinchflat_timezone: Europe/Berlin
