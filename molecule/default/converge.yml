@@ -4,7 +4,7 @@
   become: true
 
   vars:
-    change_detection_container_user: root
+    pinchflat_container_user: root
 
   roles:
     - role: iasensio.pinchflat
